@@ -1,4 +1,4 @@
-# Lightboard Projec #
+# Lightboard Project #
 
 My Arduino lightboard project.
 
