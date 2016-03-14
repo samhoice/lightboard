@@ -1,0 +1,5 @@
+.pioenvs
+
+*.sublime-workspace
+*.sublime-project
+.travis.yml
