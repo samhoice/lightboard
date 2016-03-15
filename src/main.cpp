@@ -1,7 +1,7 @@
 #include "Adafruit_WS2801.h"
 #include "SPI.h"
 
-#include "utils.h"
+#include "draw.h"
 #include "color.h"
 
 // buttons
