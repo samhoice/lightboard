@@ -2,6 +2,7 @@
 #include "SPI.h"
 
 #include "utils.h"
+#include "color.h"
 
 // buttons
 const uint8_t whiteButtonPin = 8;
@@ -16,15 +17,18 @@ const uint8_t clockPin = 3;
 // Adafruit Pixel Library
 Adafruit_WS2801 field = Adafruit_WS2801(25, dataPin, clockPin);
 
-// colors
-const uint32_t WHITE = Color(255, 255, 255);
-const uint32_t RED = Color(255, 0, 0);
-const uint32_t YELLOW = Color(255, 200, 0);
-const uint32_t BLUE = Color(0, 0, 255);
-const uint32_t GREEN = Color(0, 255, 0);
-const uint32_t ORANGE = Color(255, 64, 0);
-const uint32_t PURPLE = Color(255, 0, 255);
-const uint32_t OFF = Color(0, 0, 0);
+
+float scale = 0.2;
+
+Color WHITE = Color(255, 255, 255, scale);
+Color RED = Color(255, 0, 0, scale);
+Color YELLOW = Color(255, 200, 0, scale);
+Color BLUE = Color(0, 0, 255, scale);
+Color GREEN = Color(0, 255, 0, scale);
+Color ORANGE = Color(255, 64, 0, scale);
+Color PURPLE = Color(255, 0, 255, scale);
+Color OFF = Color(0, 0, 0, 1);
+
 
 typedef enum {
     WHITE_BUTTON = 1,
@@ -107,21 +111,21 @@ void loop() {
     
     if(change) {
         if(redState && blueState && yellowState) {
-            setAll(field, WHITE);
+            setAll(field, WHITE.getRep());
         } else if(redState && blueState) {
-            setAll(field, PURPLE);
+            setAll(field, PURPLE.getRep());
         } else if(redState && yellowState) {
-            setAll(field, ORANGE);
+            setAll(field, ORANGE.getRep());
         } else if(blueState && yellowState) {
-            setAll(field, GREEN);
+            setAll(field, GREEN.getRep());
         } else if(redState) {
-            setAll(field, RED);
+            setAll(field, RED.getRep());
         } else if(yellowState) {
-            setAll(field, YELLOW);
+            setAll(field, YELLOW.getRep());
         } else if(blueState) {
-            setAll(field, BLUE);
+            setAll(field, BLUE.getRep());
         } else {
-            setAll(field, OFF);      
+            setAll(field, OFF.getRep());
         }
         delay(250);
     }
