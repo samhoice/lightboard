@@ -13,7 +13,8 @@ Color::Color(int r, int g, int b, float scale) {
 }
 
 uint32_t Color::calcRep() {
-    uint32_t c = this->red * this->scale;
+    uint32_t c = 0;
+    c = uint32_t(this->red * this->scale);
     c <<= 8;
     c |= uint32_t(this->green * this->scale);
     c <<= 8;

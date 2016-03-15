@@ -3,6 +3,7 @@
 
 #include "draw.h"
 #include "color.h"
+#include "buttonFSM.h"
 
 // buttons
 const uint8_t whiteButtonPin = 8;
@@ -17,7 +18,6 @@ const uint8_t clockPin = 3;
 // Adafruit Pixel Library
 Adafruit_WS2801 field = Adafruit_WS2801(25, dataPin, clockPin);
 
-
 float scale = 0.2;
 
 Color WHITE = Color(255, 255, 255, scale);
@@ -29,45 +29,49 @@ Color ORANGE = Color(255, 64, 0, scale);
 Color PURPLE = Color(255, 0, 255, scale);
 Color OFF = Color(0, 0, 0, 1);
 
-
 typedef enum {
-    WHITE_BUTTON = 1,
-    RED_BUTTON = 2,
-    YELLOW_BUTTON = 4,
-    BLUE_BUTTON = 8
+    RED_BUTTON = 1,
+    YELLOW_BUTTON = 2,
+    BLUE_BUTTON = 4,
+    WHITE_BUTTON = 7
 } buttonColors;
 
 typedef enum {
-    RELEASE = 0,
-    DEBOUNCE = 1,
-    PUSH = 2,
-    HOLD = 3
-} buttonState;
+    RED_LED = 1,
+    YELLOW_LED = 2,
+    ORANGE_LED = 3,
+    BLUE_LED = 4,
+    PURPLE_LED = 5,
+    GREEN_LED = 6,
+    WHITE_LED = 7
+} ledColors;
 
-class ButtonStateMachine {
-    buttonState stateLastCycle;
-    buttonState state;
-    long startTime;
 
-    int debounceThreshold = 50;
-    int holdThreshold = 3000;
+int pushedButtons = 0;
+unsigned long pushTime = 0;
+unsigned long pushTimeThreshold = 300;
 
-    ButtonStateMachine() {
-        this->stateLastCycle = RELEASE;
-        this->state = RELEASE;
-        this->startTime = 0;
+ButtonStateMachine redButton = ButtonStateMachine();
+ButtonStateMachine yellowButton = ButtonStateMachine();
+ButtonStateMachine blueButton = ButtonStateMachine();
+ButtonStateMachine whiteButton = ButtonStateMachine();
+
+void compareNewButton(buttonColors button) {
+    if(millis() - pushTime < pushTimeThreshold) {
+        if(!(pushedButtons & button)) {
+            pushTime = millis();
+        }
+        pushedButtons |= button;
+    } else {
+        // expired
+        if(pushedButtons & button) {
+            pushedButtons &= (~button & 7);
+        } else {
+            pushedButtons = button;
+            pushTime = millis();
+        }
     }
-    
-    buttonState getState() {
-        return this->state;
-    }
-};
-
-int redState = 0;
-int blueState = 0;
-int yellowState = 0;
-long pushTime = 0;
-
+}
 
 void setup() {
     // buttons
@@ -84,49 +88,52 @@ void setup() {
 void loop() {
     uint8_t change = 0;
 
-    if(digitalRead(redButtonPin)) {
-        redState = redState ? 0 : 1;
-        change = 1;
+    // input
+    redButton.input(digitalRead(redButtonPin));
+    yellowButton.input(digitalRead(yellowButtonPin));
+    blueButton.input(digitalRead(blueButtonPin));
+    whiteButton.input(digitalRead(whiteButtonPin));
+
+    // output
+    if(PUSH == redButton.getState()) {
+        compareNewButton(RED_BUTTON);
     }
-    if(digitalRead(blueButtonPin)) {
-        blueState = blueState ? 0 : 1;
-        change = 1;
+    if(PUSH == yellowButton.getState()) {
+        compareNewButton(YELLOW_BUTTON);
     }
-    if(digitalRead(yellowButtonPin)) {
-        yellowState = yellowState ? 0 : 1;
-        change = 1;
+    if(PUSH == blueButton.getState()) {
+        compareNewButton(BLUE_BUTTON);
     }
-    if(digitalRead(whiteButtonPin)) {
-        if(redState && blueState && yellowState) {
-            redState = blueState = yellowState = 0;
-            change = 1;
-        }
-        else {
-            redState = 1;
-            blueState = 1;
-            yellowState = 1;
-            change = 1;
-        }
+    if(PUSH == whiteButton.getState()) {
+        compareNewButton(WHITE_BUTTON);
     }
-    
-    if(change) {
-        if(redState && blueState && yellowState) {
-            setAll(field, WHITE.getRep());
-        } else if(redState && blueState) {
-            setAll(field, PURPLE.getRep());
-        } else if(redState && yellowState) {
-            setAll(field, ORANGE.getRep());
-        } else if(blueState && yellowState) {
-            setAll(field, GREEN.getRep());
-        } else if(redState) {
-            setAll(field, RED.getRep());
-        } else if(yellowState) {
-            setAll(field, YELLOW.getRep());
-        } else if(blueState) {
-            setAll(field, BLUE.getRep());
-        } else {
-            setAll(field, OFF.getRep());
-        }
-        delay(250);
+
+
+    switch(pushedButtons) {
+        case RED_LED:
+        setAll(field, RED.getRep());
+        break;
+        case YELLOW_LED:
+        setAll(field, YELLOW.getRep());
+        break;
+        case BLUE_LED:
+        setAll(field, BLUE.getRep());
+        break;
+        case GREEN_LED:
+        setAll(field, GREEN.getRep());
+        break;
+        case ORANGE_LED:
+        setAll(field, ORANGE.getRep());
+        break;
+        case PURPLE_LED:
+        setAll(field, PURPLE.getRep());
+        break;
+        case WHITE_LED:
+        setAll(field, WHITE.getRep());
+        break;
     }
+
+
+    field.show();
+    change = 0;
 }
