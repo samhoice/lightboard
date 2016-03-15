@@ -63,7 +63,7 @@ void compareNewButton(buttonColors button) {
         }
         pushedButtons |= button;
     } else {
-        // expired
+        // new push
         if(pushedButtons & button) {
             pushedButtons &= (~button & 7);
         } else {
@@ -108,6 +108,7 @@ void loop() {
         compareNewButton(WHITE_BUTTON);
     }
 
+    // button queue
 
     switch(pushedButtons) {
         case RED_LED:
@@ -133,7 +134,5 @@ void loop() {
         break;
     }
 
-
-    field.show();
     change = 0;
 }
