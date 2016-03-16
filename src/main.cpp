@@ -1,9 +1,11 @@
+#include <Arduino.h>
 #include "Adafruit_WS2801.h"
 #include "SPI.h"
 
 #include "draw.h"
 #include "color.h"
 #include "buttonFSM.h"
+#include "patternFSM.h"
 
 // buttons
 const uint8_t whiteButtonPin = 8;
@@ -29,12 +31,6 @@ Color ORANGE = Color(255, 64, 0, scale);
 Color PURPLE = Color(255, 0, 255, scale);
 Color OFF = Color(0, 0, 0, 1);
 
-typedef enum {
-    RED_BUTTON = 1,
-    YELLOW_BUTTON = 2,
-    BLUE_BUTTON = 4,
-    WHITE_BUTTON = 7
-} buttonColors;
 
 typedef enum {
     RED_LED = 1,
@@ -56,22 +52,7 @@ ButtonStateMachine yellowButton = ButtonStateMachine();
 ButtonStateMachine blueButton = ButtonStateMachine();
 ButtonStateMachine whiteButton = ButtonStateMachine();
 
-void compareNewButton(buttonColors button) {
-    if(millis() - pushTime < pushTimeThreshold) {
-        if(!(pushedButtons & button)) {
-            pushTime = millis();
-        }
-        pushedButtons |= button;
-    } else {
-        // new push
-        if(pushedButtons & button) {
-            pushedButtons &= (~button & 7);
-        } else {
-            pushedButtons = button;
-            pushTime = millis();
-        }
-    }
-}
+PatternStateMachine patternMaker = PatternStateMachine();
 
 void setup() {
     // buttons
@@ -86,31 +67,19 @@ void setup() {
 }
 
 void loop() {
-    uint8_t change = 0;
-
     // input
     redButton.input(digitalRead(redButtonPin));
     yellowButton.input(digitalRead(yellowButtonPin));
     blueButton.input(digitalRead(blueButtonPin));
     whiteButton.input(digitalRead(whiteButtonPin));
 
-    // output
-    if(PUSH == redButton.getState()) {
-        compareNewButton(RED_BUTTON);
-    }
-    if(PUSH == yellowButton.getState()) {
-        compareNewButton(YELLOW_BUTTON);
-    }
-    if(PUSH == blueButton.getState()) {
-        compareNewButton(BLUE_BUTTON);
-    }
-    if(PUSH == whiteButton.getState()) {
-        compareNewButton(WHITE_BUTTON);
-    }
+    patternMaker.input();
+    patternMaker.input(RED_BUTTON, redButton.getState());
+    patternMaker.input(YELLOW_BUTTON, yellowButton.getState());
+    patternMaker.input(BLUE_BUTTON, blueButton.getState());
+    patternMaker.input(WHITE_BUTTON, whiteButton.getState());
 
-    // button queue
-
-    switch(pushedButtons) {
+    switch(patternMaker.getPushedButtons()) {
         case RED_LED:
         setAll(field, RED.getRep());
         break;
@@ -132,7 +101,7 @@ void loop() {
         case WHITE_LED:
         setAll(field, WHITE.getRep());
         break;
+        default:
+        setAll(field, OFF.getRep());
     }
-
-    change = 0;
 }

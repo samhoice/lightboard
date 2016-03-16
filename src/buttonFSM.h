@@ -22,6 +22,6 @@ private:
     buttonState state;
     unsigned long startTime;
 
-    unsigned int debounceThreshold = 10;
-    unsigned int holdThreshold = 3000;
+    unsigned long debounceThreshold = 10;
+    unsigned long holdThreshold = 3000;
 };
