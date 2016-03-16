@@ -14,9 +14,6 @@ PatternStateMachine::PatternStateMachine() {
 
     this->pushedButtons = 0;
     this->output = 0;
-
-    // this->pushThreshold = 300;
-    // this->patternThreshold = 300;
 }
 
 void PatternStateMachine::input() {
